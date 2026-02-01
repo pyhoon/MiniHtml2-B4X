@@ -1,0 +1,41 @@
+﻿AppType=StandardJava
+Build1=Default,com.example
+File1=config.example
+FileGroup1=Default Group
+Group=App
+Library1=b4xcollections
+Library2=endsmeet
+Library3=jcore
+Module1=Document
+Module2=Index
+Module3=MiniHtml
+Module4=MiniHtmlParser
+NumberOfFiles=1
+NumberOfLibraries=3
+NumberOfModules=4
+Version=10.3
+@EndOfDesignText@
+#Region Project Attributes 
+	#CommandLineArgs:
+	#MergeLibraries: True
+#End Region
+#Region Macros
+'#Macro: Title, Export as zip, ide://run?file=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
+#Macro: Title, Update Manifest, ide://run?file=%JAVABIN%\java.exe&Args=-jar&Args=%ADDITIONAL%\..\B4X\manifest-writer.jar&Args=%PROJECT%&Args=%PROJECT%&Args=Author&Args=Aeric&Args=Version&Args=2.00&Args=DependsOn&Args=B4XCollections
+#Macro: Title, Create B4xLib, ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=..&Args=-cMf&Args=..\prerelease\%PROJECT_NAME%.b4xlib&Args=Mini*.bas&Args=Document.bas&Args=manifest.txt&Args=LICENSE
+#Macro: Title, Prerelease folder, ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\..\prerelease
+#Macro: Title, Copy to AddLibs, ide://run?file=%COMSPEC%&Args=/c&Args=copy&Args=%PROJECT%\..\prerelease\*.b4xlib&Args=%ADDITIONAL%\..\B4X
+#End Region
+Sub Process_Globals
+    Public App As EndsMeet
+End Sub
+
+' <link>Open in browser|http://127.0.0.1:8080</link>
+' <link>Donate|https://paypal.me/aeric80/</link> | <link>Forum|https://www.b4x.com/android/forum/threads/b4x-web-minihtml2.170180/)</link> | <link>GitHub|https://github.com/pyhoon/MiniHtml2-B4X</link>
+Sub AppStart (Args() As String)
+    App.Initialize
+    App.Get("", "Index")
+    App.Post("/modal", "Index")
+    App.Start
+    StartMessageLoop
+End Sub
