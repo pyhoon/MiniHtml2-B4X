@@ -7,27 +7,26 @@ Version=10.3
 ' MiniHtml2
 ' Version: 2.00-alpha
 Sub Class_Globals
-	'Private Const tagname As String = "html"
-	'Private mId As String
-	Private mName As String
-	Private mMode As String
-	'Private mTagName As String
+	Private mIndents As Int
 	Private mIndentString As String
+	Private mMode As String
+	Private mName As String
 	Private mFlat As Boolean
 	Private mLineFeed As Boolean
-	Private mIndent As Boolean
+	Private mIndentation As Boolean
 	Private mFormatAttributes As Boolean
 	Private mParent As MiniHtml
 	Private mChildren As List
 	Private mSiblings As List
-	Private mAttributes As Map
-	Private mStyles As Map
 	Private mClasses As List
-	Private Const mNoTag     As String = ""
-	Private Const mMeta      As String = "meta"		' <meta>
-	Private Const mSelf      As String = "self"		' <tag />
-	Private Const mUniline   As String = "uniline" 	' <tag></tag>
-	Private Const mMultiline As String = "multiline"' <tag> CRLF </tag>	
+	Private mStyles As Map
+	Private mAttributes As Map
+	Private mBuilder As StringBuilder
+	Private Const mNoTag As String = ""
+	Private Const mMeta As String = "meta" ' <meta>
+	Private Const mSelf As String = "self" ' <tag />
+	Private Const mUniline As String = "uniline" ' <tag></tag>
+	Private Const mMultiline As String = "multiline" ' <tag> CRLF </tag>	
 End Sub
 
 ' Initial with tag name
@@ -37,12 +36,11 @@ Public Sub Initialize (Name As String)
 	mAttributes.Initialize
 	mStyles.Initialize
 	mClasses.Initialize
+	mBuilder.Initialize
 	mFlat = False
-	mIndent = False
 	mLineFeed = True
-	'mId = ""
+	mIndentation = False
 	mName = Name
-	'mTagName = tagName
 	Select mName.ToLowerCase
 		Case "head", "form", "table"
 			mMode = mMultiline
@@ -59,7 +57,6 @@ Public Sub Initialize (Name As String)
 			mMode = mMultiline
 	End Select
 	mIndentString = "  "
-	'Return Me
 End Sub
 
 ' No indent
@@ -85,7 +82,6 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 	Dim sIndent As String
 	Dim sSpacing As String
 	Dim SpecialTags As List = Array As String("html", "head", "body", "")
-	'Log("mTagName=" & mTagName & ", LF=" & mLineFeed)' & ", Line1CRLF=" & Line1CRLF)
 
 	If mLineFeed Then
 		SB.Append(CRLF)
@@ -104,7 +100,7 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 	If SpecialTags.IndexOf(mName) < 0 Then
 		SB.Append(sIndent)
 	Else
-		If mIndent Then SB.Append(sIndent)
+		If mIndentation Then SB.Append(sIndent)
 	End If
 	
 	If mMode <> "" Then
@@ -137,7 +133,6 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 		If MoreThanOne = False Then
 			If mFlat = False And mFormatAttributes Then
 				Separator = CRLF & sIndent & sSpacing
-				'Log(mTagName & sIndent & "[" & sSpacing & "]newtag")
 			End If
 			MoreThanOne = True
 		End If
@@ -145,7 +140,6 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 	
 	Select mMode
 		Case mSelf
-			'If mFlat = False Then SB.Append(" ")
 			SB.Append("/>")
 		Case mUniline, mMultiline, mMeta
 			SB.Append(">")
@@ -184,15 +178,15 @@ Public Sub getName As String
 	Return mName
 End Sub
 
+'code: <code>html1.lang("en")</code>
+Public Sub lang (value As String) As MiniHtml
+	Return attr("lang", value)
+End Sub
+
 Private Sub Create (Name As String) As MiniHtml
 	Dim NewTag As MiniHtml
 	NewTag.Initialize(Name)
 	Return NewTag
-End Sub
-
-'code: <code>html1.lang("en")</code>
-Public Sub lang (value As String) As MiniHtml
-	Return attr("lang", value)
 End Sub
 
 'Set an attribute with a key and value
@@ -259,7 +253,7 @@ Public Sub ChildById (value As String) As MiniHtml
 End Sub
 
 ' Get first child matches Tag Name
-Public Sub ChildByTagName (value As String) As MiniHtml
+Public Sub ChildByName (value As String) As MiniHtml
 	For i = 0 To mChildren.Size - 1
 		If Child(i).Name = value Then
 			Return Child(i)
@@ -276,7 +270,7 @@ End Sub
 'Add a comment as child (Indent)
 Public Sub comment (value As String)
 	Dim child1 As MiniHtml = Create(mNoTag)
-	child1.Indent = True
+	child1.Indentation = True
 	child1.text($"<!--${value}-->"$)
 	mChildren.Add(child1)
 End Sub
@@ -437,6 +431,68 @@ Public Sub StylesAsString As String
 	Return sb.ToString
 End Sub
 
+Public Sub ConvertToMiniHtml (node1 As HtmlNode) As MiniHtml
+    Dim parent As MiniHtml
+    parent.Initialize(node1.Name)
+    
+    ' Handle class and style attributes first
+	Dim parser As MiniHtmlParser
+	parser.Initialize
+    Dim class1 As String = parser.GetAttributeValue(node1, "class", "")
+    Dim style1 As String = parser.GetAttributeValue(node1, "style", "")
+    If class1 <> "" Then parent.addClass(class1)
+    If style1 <> "" Then parent.addStyle(style1)
+
+    For Each att As HtmlAttribute In node1.Attributes
+        ' Skip class and style as we already handled them
+        If att.Key = "class" Or att.Key = "style" Then Continue
+        If att.Key = "value" And att.Value.Trim.Length > 0 Then
+            If node1.Name = "input" Or node1.Name = "option" Then
+                parent.attr(att.Key, att.Value.Trim)
+            Else
+                If att.Value.Trim.Length > 0 Then
+                    parent.Text(att.Value.Trim)
+                End If
+            End If
+        Else
+            ' Handle boolean attributes (where key = value)
+            If att.Key = att.Value And att.Key <> "name" Then
+                parent.attr3(att.Key) ' boolean attribute
+            Else
+                parent.attr(att.Key, att.Value) ' regular attribute
+            End If
+        End If
+    Next
+    
+    For Each node As HtmlNode In node1.Children
+        Dim tag2 As MiniHtml = ConvertToMiniHtml(node)
+        If tag2.Name = "text" Then
+            If tag2.Attributes.ContainsKey("value") Then
+                ' ignore text nodes with "value" attribute
+            Else
+                parent.add(tag2)
+            End If
+        Else
+            parent.add(tag2)
+        End If
+    Next
+    Return parent
+End Sub
+
+Public Sub Parse (HtmlText As String) As MiniHtml
+	Dim root1 As MiniHtml
+	Dim parser As MiniHtmlParser
+	parser.Initialize
+	Dim node1 As HtmlNode = parser.Parse(HtmlText)
+	For Each node As HtmlNode In node1.Children
+		' Skip text tag
+		If node.Name.EqualsIgnoreCase("text") = False Then
+			root1 = ConvertToMiniHtml(node)
+		End If
+	Next
+	Return root1
+End Sub
+
 ' Wrap script inside script tags
 'output: <code><script>value</script></code>
 Public Sub script (value As String) As MiniHtml
@@ -460,12 +516,24 @@ Public Sub getFlat As Boolean
 	Return mFlat
 End Sub
 
-'Set Indent
-Public Sub setIndent (Value As Boolean)
-	mIndent = Value
+' Set amount of Indent
+Public Sub setIndents (Value As Int)
+	mIndents = Value
+	'If mFlat Then Return
+	For n = 0 To mIndents - 1
+		mBuilder.Append(mIndentString)
+	Next
 End Sub
-Public Sub getIndent As Boolean
-	Return mIndent
+Public Sub getIndents As Int
+	Return mIndents
+End Sub
+
+'Set Indent
+Public Sub setIndentation (Value As Boolean)
+	mIndentation = Value
+End Sub
+Public Sub getIndentation As Boolean
+	Return mIndentation
 End Sub
 
 'Set LineFeed
@@ -474,6 +542,15 @@ Public Sub setLineFeed (Value As Boolean)
 End Sub
 Public Sub getLineFeed As Boolean
 	Return mLineFeed
+End Sub
+
+'Replace/return maps of attributes
+Public Sub getAttributes As Map
+	Return mAttributes
+End Sub
+'Replace/return maps of attributes
+Public Sub setAttributes (keyvals As Map)
+	mAttributes = keyvals
 End Sub
 
 ' Set FormatAttributes
@@ -524,4 +601,19 @@ End Sub
 Public Sub readonly As MiniHtml
 	mAttributes.Put("readonly", "")
 	Return Me
+End Sub
+
+' Set Indent String
+' Default = "  " (2 whitespaes)
+Public Sub setIndentString (Value As String)
+	mIndentString = Value
+End Sub
+
+' Add text value to Builder
+Public Sub Write (Value As String)
+	mBuilder.Append(Value)
+End Sub
+
+Public Sub ToString As String
+	Return mBuilder.ToString
 End Sub
