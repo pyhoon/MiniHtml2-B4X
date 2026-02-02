@@ -15,6 +15,7 @@ Sub Class_Globals
 	Private mIndentString As String
 	Private mFlat As Boolean
 	Private mLineFeed As Boolean
+	Private mIndent As Boolean
 	Private mFormatAttributes As Boolean
 	Private mParent As MiniHtml
 	Private mChildren As List
@@ -37,6 +38,7 @@ Public Sub Initialize (Name As String)
 	mStyles.Initialize
 	mClasses.Initialize
 	mFlat = False
+	mIndent = False
 	mLineFeed = True
 	'mId = ""
 	mName = Name
@@ -82,7 +84,7 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 	SB.Initialize
 	Dim sIndent As String
 	Dim sSpacing As String
-	Dim SpecialTags As List = Array As String("html", "head", "body", mNoTag)
+	Dim SpecialTags As List = Array As String("html", "head", "body", "")
 	'Log("mTagName=" & mTagName & ", LF=" & mLineFeed)' & ", Line1CRLF=" & Line1CRLF)
 
 	If mLineFeed Then
@@ -101,6 +103,8 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 	
 	If SpecialTags.IndexOf(mName) < 0 Then
 		SB.Append(sIndent)
+	Else
+		If mIndent Then SB.Append(sIndent)
 	End If
 	
 	If mMode <> "" Then
@@ -175,7 +179,7 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 	Return SB.ToString
 End Sub
 
-'Get name attribute
+'Get tag name
 Public Sub getName As String
 	Return mName
 End Sub
@@ -239,13 +243,46 @@ Public Sub setParent (ParentTag As MiniHtml)
 	mParent = ParentTag
 End Sub
 
+' Get child by index
+Public Sub Child (tagIndex As Int) As MiniHtml
+	Return mChildren.Get(tagIndex)
+End Sub
+
+' Get child matches id attribute
+Public Sub ChildById (value As String) As MiniHtml
+	For i = 0 To mChildren.Size - 1
+		If Child(i).mAttributes.Get("id") = value Then
+			Return Child(i)
+		End If
+	Next
+	Return Null
+End Sub
+
+' Get first child matches Tag Name
+Public Sub ChildByTagName (value As String) As MiniHtml
+	For i = 0 To mChildren.Size - 1
+		If Child(i).Name = value Then
+			Return Child(i)
+		End If
+	Next
+	Return Null
+End Sub
+
 'Add a linebreak without indent
 Public Sub linebreak
 	mChildren.Add(Create(mNoTag))
 End Sub
 
-'Add a comment without indent
-Public Sub comment (value As String, newline As Boolean)
+'Add a comment as child (Indent)
+Public Sub comment (value As String)
+	Dim child1 As MiniHtml = Create(mNoTag)
+	child1.Indent = True
+	child1.text($"<!--${value}-->"$)
+	mChildren.Add(child1)
+End Sub
+
+'Add a comment with no indent
+Public Sub comment2 (value As String, newline As Boolean)
 	If newline Then linebreak
 	text($"<!--${value}-->"$)
 End Sub
@@ -256,16 +293,31 @@ End Sub
 
 Public Sub cdn2 (format As String, url As String, integrity As String, crossorigin As String) As MiniHtml
 	Select format.ToLowerCase
-		Case "script"
+		Case "script", "js"
 			Dim map1 As Map = CreateMap("src": url)
 			If integrity <> "" Then map1.Put("integrity", integrity)
 			If crossorigin <> "" Then map1.Put("crossorigin", crossorigin)
 			mChildren.Add(Create("script").attr2(map1))
-		Case "style"
-			Dim map2 As Map = CreateMap("href": url)
+		Case "style", "css"
+			Dim map2 As Map = CreateMap("rel": "stylesheet", "href": url)
 			If integrity <> "" Then map2.Put("integrity", integrity)
 			If crossorigin <> "" Then map2.Put("crossorigin", crossorigin)
-			map2.Put("rel", "stylesheet")
+			mChildren.Add(Create("link").attr2(map2))
+	End Select
+	Return Me
+End Sub
+
+Public Sub cdn3 (format As String, url As String, integrity As Boolean, crossorigin As Boolean) As MiniHtml
+	Select format.ToLowerCase
+		Case "script", "js"
+			Dim map1 As Map = CreateMap("src": url)
+			If integrity Then map1.Put("integrity", "")
+			If crossorigin Then map1.Put("crossorigin", "")
+			mChildren.Add(Create("script").attr2(map1))
+		Case "style", "css"
+			Dim map2 As Map = CreateMap("rel": "stylesheet", "href": url)
+			If integrity Then map2.Put("integrity", "")
+			If crossorigin Then map2.Put("crossorigin", "")
 			mChildren.Add(Create("link").attr2(map2))
 	End Select
 	Return Me
@@ -385,12 +437,35 @@ Public Sub StylesAsString As String
 	Return sb.ToString
 End Sub
 
+' Wrap script inside script tags
+'output: <code><script>value</script></code>
+Public Sub script (value As String) As MiniHtml
+	mChildren.Add(Create("script").multiline.text(value))
+	Return Me
+End Sub
+
 'Set mode
 Public Sub setMode (TagMode As String)
 	mMode = TagMode.ToLowerCase
 End Sub
 Public Sub getMode As String
 	Return mMode
+End Sub
+
+'Set flat
+Public Sub setFlat (Value As Boolean)
+	mFlat = Value
+End Sub
+Public Sub getFlat As Boolean
+	Return mFlat
+End Sub
+
+'Set Indent
+Public Sub setIndent (Value As Boolean)
+	mIndent = Value
+End Sub
+Public Sub getIndent As Boolean
+	Return mIndent
 End Sub
 
 'Set LineFeed
