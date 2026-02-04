@@ -301,17 +301,20 @@ Public Sub cdn2 (format As String, url As String, integrity As String, crossorig
 	Return Me
 End Sub
 
-Public Sub cdn3 (format As String, url As String, integrity As Boolean, crossorigin As Boolean) As MiniHtml
+Public Sub cdn3 (format As String, url As String, scriptType As String, integrity As Boolean, crossorigin As Boolean) As MiniHtml
 	Select format.ToLowerCase
 		Case "script", "js"
-			Dim map1 As Map = CreateMap("src": url)
+			Dim map1 As Map = CreateMap()
+			If scriptType <> "" Then map1.Put("type", scriptType)
 			If integrity Then map1.Put("integrity", "")
 			If crossorigin Then map1.Put("crossorigin", "")
+			map1.Put("src", url)
 			mChildren.Add(Create("script").attr2(map1))
 		Case "style", "css"
-			Dim map2 As Map = CreateMap("rel": "stylesheet", "href": url)
+			Dim map2 As Map = CreateMap("rel": "stylesheet")
 			If integrity Then map2.Put("integrity", "")
 			If crossorigin Then map2.Put("crossorigin", "")
+			map2.Put("href", url)
 			mChildren.Add(Create("link").attr2(map2))
 	End Select
 	Return Me
