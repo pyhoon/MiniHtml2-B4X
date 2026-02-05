@@ -140,7 +140,8 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 	
 	Select mMode
 		Case mSelf
-			SB.Append("/>")
+			'SB.Append("/>")
+			SB.Append(">")
 		Case mUniline, mMultiline, mMeta
 			SB.Append(">")
 	End Select
@@ -148,6 +149,7 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 	For Each tagOrString In mChildren
 		If tagOrString Is MiniHtml Then
 			Dim mCurrent As MiniHtml = tagOrString
+			'If mMode = mUniline Then mCurrent.Mode = mUniline ' (experiment)
 			SB.Append(mCurrent.BuildImpl(indent + 1, False))
 		Else
 			SB.Append(tagOrString)
@@ -156,17 +158,20 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 	
 	Select mMode
 		Case mUniline
-			If mChildren.Size > 1 Then
+			' Commented (experiment)
+			'If mChildren.Size > 0 Then
+				'SB.Append(CRLF)
+				'If SpecialTags.IndexOf(mName) < 0 Then
+				'	SB.Append(sIndent)
+				'End If
+			'End If
+			SB.Append("</" & mName & ">")
+		Case mMultiline
+			If mChildren.Size > 0 Then
 				SB.Append(CRLF)
 				If SpecialTags.IndexOf(mName) < 0 Then
 					SB.Append(sIndent)
 				End If
-			End If
-			SB.Append("</" & mName & ">")
-		Case mMultiline
-			SB.Append(CRLF)
-			If SpecialTags.IndexOf(mName) < 0 Then
-				SB.Append(sIndent)
 			End If
 			SB.Append("</" & mName & ">")
 	End Select
@@ -335,8 +340,10 @@ End Sub
 
 ' Add text wrapped in between multiline tags
 Public Sub textWrap (value As String) As MiniHtml
-	mChildren.Add(Create(mNoTag))
-	mChildren.Add(value)
+	Dim child1 As MiniHtml = Create(mNoTag)
+	child1.Indentation = True
+	child1.text(value)
+	mChildren.Add(child1)
 	Return Me
 End Sub
 
