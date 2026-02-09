@@ -234,6 +234,14 @@ Public Sub add (ChildTag As MiniHtml) As MiniHtml
 	Return ChildTag
 End Sub
 
+'Return the Children list
+Public Sub getChildren As List
+	Return mChildren
+End Sub
+Public Sub setChildren (Children As List)
+	mChildren = Children
+End Sub
+
 'Return the Parent tag
 Public Sub getParent As MiniHtml
 	Return mParent
@@ -441,6 +449,14 @@ Public Sub StylesAsString As String
 	Return sb.ToString
 End Sub
 
+Public Sub ConvertFromBytes (Buffer() As Byte) As MiniHtml
+	Return Parse(BytesToString(Buffer, 0, Buffer.Length, "UTF-8"))
+End Sub
+
+Public Sub ConvertToBytes As Byte()
+	Return build.GetBytes("UTF8")
+End Sub
+
 Public Sub ConvertToMiniHtml (node1 As HtmlNode) As MiniHtml
     Dim parent As MiniHtml
     parent.Initialize(node1.Name)
@@ -490,17 +506,13 @@ Public Sub ConvertToMiniHtml (node1 As HtmlNode) As MiniHtml
 End Sub
 
 Public Sub Parse (HtmlText As String) As MiniHtml
-	Dim root1 As MiniHtml
 	Dim parser As MiniHtmlParser
 	parser.Initialize
 	Dim node1 As HtmlNode = parser.Parse(HtmlText)
-	For Each node As HtmlNode In node1.Children
-		' Skip text tag
-		If node.Name.EqualsIgnoreCase("text") = False Then
-			root1 = ConvertToMiniHtml(node)
-		End If
+	For Each HtmlNode1 As HtmlNode In node1.Children
+		If HtmlNode1.Name.EqualsIgnoreCase("text") = False Then Return ConvertToMiniHtml(HtmlNode1)
 	Next
-	Return root1
+	Return Create(mNoTag)
 End Sub
 
 ' Wrap script inside script tags

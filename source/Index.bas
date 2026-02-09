@@ -43,7 +43,7 @@ Private Sub ShowIndexPage
 End Sub
 
 Sub Div As MiniHtml
-	Return Div
+	Return CreateTag("div")
 End Sub
 
 Sub Meta As MiniHtml
