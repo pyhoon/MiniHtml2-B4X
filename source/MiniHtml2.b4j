@@ -22,16 +22,16 @@ Version=10.3
 '#Macro: Title, Export as zip, ide://run?file=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
 #Macro: Title, Code bundle, ide://run?File=%ADDITIONAL%\..\B4X\CodeBundle.jar&Args=%PROJECT_NAME%
 #Macro: Title, Update Manifest, ide://run?file=%JAVABIN%\java.exe&Args=-jar&Args=%ADDITIONAL%\..\B4X\manifest-writer.jar&Args=%PROJECT%&Args=%PROJECT%&Args=Author&Args=Aeric&Args=Version&Args=2.00&Args=DependsOn&Args=B4XCollections
-#Macro: Title, Create B4xLib, ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=..&Args=-cMf&Args=..\prerelease\%PROJECT_NAME%.b4xlib&Args=Mini*.bas&Args=manifest.txt&Args=LICENSE
-#Macro: Title, Prerelease folder, ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\..\prerelease
-#Macro: Title, Copy to AddLibs, ide://run?file=%COMSPEC%&Args=/c&Args=copy&Args=%PROJECT%\..\prerelease\*.b4xlib&Args=%ADDITIONAL%\..\B4X
+#Macro: Title, Create B4xLib, ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=..&Args=-cMf&Args=..\release\MiniHtml.b4xlib&Args=Mini*.bas&Args=manifest.txt&Args=LICENSE
+#Macro: Title, Release folder, ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\..\release
+#Macro: Title, Copy to AddLibs, ide://run?file=%COMSPEC%&Args=/c&Args=copy&Args=%PROJECT%\..\release\MiniHtml.b4xlib&Args=%ADDITIONAL%\..\B4X
 #End Region
 Sub Process_Globals
     Public App As EndsMeet
 End Sub
 
 ' <link>Open in browser|http://127.0.0.1:8080</link>
-' <link>Donate|https://paypal.me/aeric80/</link> | <link>Forum|https://www.b4x.com/android/forum/threads/b4x-web-minihtml2.170180/)</link> | <link>GitHub|https://github.com/pyhoon/MiniHtml2-B4X</link>
+' <link>Donate|https://paypal.me/aeric80/</link> | <link>Forum|https://www.b4x.com/android/forum/threads/b4x-web-minihtml2.170180/</link> | <link>GitHub|https://github.com/pyhoon/MiniHtml2-B4X</link>
 Sub AppStart (Args() As String)
     App.Initialize
     App.Get("", "Index")

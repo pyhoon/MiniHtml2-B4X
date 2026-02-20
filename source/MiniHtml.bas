@@ -4,8 +4,8 @@ ModulesStructureVersion=1
 Type=Class
 Version=10.3
 @EndOfDesignText@
-' MiniHtml2
-' Version: 2.00-beta
+' MiniHtml
+' Version: 2.00
 Sub Class_Globals
 	Private mIndents As Int
 	Private mIndentString As String
@@ -48,7 +48,6 @@ Public Sub Initialize (Name As String)
 			mMode = mMeta
 		Case "title", "h1", "h2", "h3", "h4", "h5", "p", "script", "label", "button", "span", "li", "a", "i", "b", "u", "option", "bold", "italic", "underline", "strong", "em", "del", "th", "td", "small", "textarea"
 			mMode = mUniline
-			'mLineFeed = False
 		Case "img", "br"', "link"
 			mMode = mSelf ' self closing tag
 		Case "text", ""
@@ -125,9 +124,15 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 		SB.Append(key)
 		If attrs.Length > 0 Then
 			SB.Append("=")
-			SB.Append(QUOTE)
-			SB.Append(attrs)
-			SB.Append(QUOTE)
+			If attrs.StartsWith("'") And attrs.EndsWith("'") Then
+				'SB.Append("'")
+				SB.Append(attrs)
+				'SB.Append("'")
+			Else
+				SB.Append(QUOTE)
+				SB.Append(attrs)
+				SB.Append(QUOTE)
+			End If
 		End If
 		
 		If MoreThanOne = False Then
@@ -160,10 +165,10 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 		Case mUniline
 			' Commented (experiment)
 			'If mChildren.Size > 0 Then
-				'SB.Append(CRLF)
-				'If SpecialTags.IndexOf(mName) < 0 Then
-				'	SB.Append(sIndent)
-				'End If
+			'SB.Append(CRLF)
+			'If SpecialTags.IndexOf(mName) < 0 Then
+			'	SB.Append(sIndent)
+			'End If
 			'End If
 			SB.Append("</" & mName & ">")
 		Case mMultiline
@@ -294,10 +299,12 @@ Public Sub comment2 (value As String, newline As Boolean)
 	text($"<!--${value}-->"$)
 End Sub
 
-Public Sub cdn (format As String, url As String, integrity As String) As MiniHtml
-	Return cdn2(format, url, integrity, "anonymous")
+'<code>body1.cdn("script", "/assets/js/cdn.min.js")</code>
+Public Sub cdn (format As String, url As String) As MiniHtml
+	Return cdn2(format, url, "", "")
 End Sub
 
+'<code>body1.cdn2("script", "/assets/js/cdn.min.js", "", "")</code>
 Public Sub cdn2 (format As String, url As String, integrity As String, crossorigin As String) As MiniHtml
 	Select format.ToLowerCase
 		Case "script", "js"
@@ -314,21 +321,15 @@ Public Sub cdn2 (format As String, url As String, integrity As String, crossorig
 	Return Me
 End Sub
 
-Public Sub cdn3 (format As String, url As String, scriptType As String, integrity As Boolean, crossorigin As Boolean) As MiniHtml
+'<code>body1.cdn3("script", "/assets/js/cdn.min.js", CreateMap("defer": ""))</code>
+Public Sub cdn3 (format As String, url As String, keyvals As Map) As MiniHtml
 	Select format.ToLowerCase
 		Case "script", "js"
-			Dim map1 As Map = CreateMap()
-			If scriptType <> "" Then map1.Put("type", scriptType)
-			If integrity Then map1.Put("integrity", "")
-			If crossorigin Then map1.Put("crossorigin", "")
-			map1.Put("src", url)
-			mChildren.Add(Create("script").attr2(map1))
+			keyvals.Put("src", url)
+			mChildren.Add(Create("script").attr2(keyvals))
 		Case "style", "css"
-			Dim map2 As Map = CreateMap("rel": "stylesheet")
-			If integrity Then map2.Put("integrity", "")
-			If crossorigin Then map2.Put("crossorigin", "")
-			map2.Put("href", url)
-			mChildren.Add(Create("link").attr2(map2))
+			keyvals.Put("href", url)
+			mChildren.Add(Create("link").attr2(keyvals))
 	End Select
 	Return Me
 End Sub
