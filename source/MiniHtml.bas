@@ -304,7 +304,7 @@ Public Sub cdn (format As String, url As String) As MiniHtml
 	Return cdn2(format, url, "", "")
 End Sub
 
-'<code>body1.cdn2("script", "/assets/js/cdn.min.js", "", "")</code>
+'<code>body1.cdn2("script", "/assets/js/cdn.min.js", "sha384-hashes", "anonymous")</code>
 Public Sub cdn2 (format As String, url As String, integrity As String, crossorigin As String) As MiniHtml
 	Select format.ToLowerCase
 		Case "script", "js"
