@@ -1,4 +1,4 @@
-B4J=true
+﻿B4J=true
 Group=Classes
 ModulesStructureVersion=1
 Type=Class
@@ -220,16 +220,20 @@ Private Sub ParseAttributes (Parent As HtmlNode)
 	Dim m As Matcher = Regex.Matcher($"([@:][a-zA-Z0-9._-]+)(?=\s*[/>]|\s*$)|([a-zA-Z0-9-]+)(?=\s*[/>]|\s*$)"$, s)
 	Do While m.Find
 		Dim attrName As String = ""
-		' Check which group matched
-		If m.Group(1) <> "" Then
-			' Special attribute prefix (@, :)
-			attrName = m.Group(1)
+		' Check which group matched – safely handle null
+		Dim group1 As String = m.Group(1)
+		Dim group2 As String = m.Group(2)
+    
+		If group1 <> Null And group1 <> "" Then
+			attrName = group1
+		Else If group2 <> Null And group2 <> "" Then
+			attrName = group2
 		Else
-			' Regular attribute
-			attrName = m.Group(2)
+			' No valid attribute name found – skip this match
+			Continue
 		End If
-		
-		' Skip if this is part of a key=value pair (already processed above)
+    
+		' Skip if this attribute was already processed as a key=value pair
 		Dim isAlreadyProcessed As Boolean = False
 		For Each existingAttr As HtmlAttribute In Parent.Attributes
 			If existingAttr.Key = attrName Then
@@ -237,7 +241,7 @@ Private Sub ParseAttributes (Parent As HtmlNode)
 				Exit
 			End If
 		Next
-		
+    
 		If isAlreadyProcessed = False Then
 			' Special attributes with @ or : prefixes are always accepted
 			If attrName.StartsWith("@") Or attrName.StartsWith(":") Then
@@ -245,7 +249,7 @@ Private Sub ParseAttributes (Parent As HtmlNode)
 			Else
 				' For regular attributes, check if it's a known boolean attribute
 				Dim commonBooleanAttrs As List = Array As String("disabled", "readonly", "checked", "required", "selected", "multiple", "autofocus", "novalidate", "formnovalidate", "hidden")
-				
+            
 				If commonBooleanAttrs.IndexOf(attrName) > -1 Then
 					Parent.Attributes.Add(CreateHtmlAttribute(attrName, attrName))
 				Else
