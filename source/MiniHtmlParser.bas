@@ -1,4 +1,4 @@
-﻿B4J=true
+B4J=true
 Group=Classes
 ModulesStructureVersion=1
 Type=Class
@@ -207,18 +207,27 @@ Private Sub ParseAttributes (Parent As HtmlNode)
 	Dim s As String = mHtml.SubString2(start, mIndex - 1)
 	
 	' Parse attributes with values (key="value" or key='value')
+	' Updated regex to support special characters like @ and : for HTMX and Alpine.js
 	For Each EscapeChar As String In Array("'", $"""$)
-		Dim m As Matcher = Regex.Matcher($"([a-zA-Z0-9-]+)\s*=\s*\${EscapeChar}([^${EscapeChar}]+)\${EscapeChar}"$, s)
+		Dim m As Matcher = Regex.Matcher($"([@:a-zA-Z0-9._-]+)\s*=\s*\${EscapeChar}([^${EscapeChar}]*)\${EscapeChar}"$, s)
 		Do While m.Find
 			Parent.Attributes.Add(CreateHtmlAttribute(m.Group(1), m.Group(2)))
 		Loop
 	Next
 	
 	' Parse boolean attributes (standalone keys like "disabled")
-	' More precise regex to avoid matching class values
-	Dim m As Matcher = Regex.Matcher($"\b([a-zA-Z0-9-]+)(?=\s*[/>]|\s*$)"$, s)
+	' Updated regex to support special characters like @ and : for HTMX and Alpine.js
+	Dim m As Matcher = Regex.Matcher($"([@:][a-zA-Z0-9._-]+)(?=\s*[/>]|\s*$)|([a-zA-Z0-9-]+)(?=\s*[/>]|\s*$)"$, s)
 	Do While m.Find
-		Dim attrName As String = m.Group(1)
+		Dim attrName As String = ""
+		' Check which group matched
+		If m.Group(1) <> "" Then
+			' Special attribute prefix (@, :)
+			attrName = m.Group(1)
+		Else
+			' Regular attribute
+			attrName = m.Group(2)
+		End If
 		
 		' Skip if this is part of a key=value pair (already processed above)
 		Dim isAlreadyProcessed As Boolean = False
@@ -229,18 +238,21 @@ Private Sub ParseAttributes (Parent As HtmlNode)
 			End If
 		Next
 		
-		' Also check if this might be part of a class value by looking at the context
 		If isAlreadyProcessed = False Then
-			' More validation: check if this looks like a valid boolean attribute
-			' Common boolean attributes in HTML
-			Dim commonBooleanAttrs As List = Array As String("disabled", "readonly", "checked", "required", "selected", "multiple", "autofocus", "novalidate", "formnovalidate", "hidden")
-			
-			If commonBooleanAttrs.IndexOf(attrName) > -1 Then
+			' Special attributes with @ or : prefixes are always accepted
+			If attrName.StartsWith("@") Or attrName.StartsWith(":") Then
 				Parent.Attributes.Add(CreateHtmlAttribute(attrName, attrName))
 			Else
-				' Log unexpected boolean attributes for debugging
-				If mShowParserLogs Then
-					LogColor($"Warning: Unexpected boolean attribute: ${attrName}"$, COLOR_RED)
+				' For regular attributes, check if it's a known boolean attribute
+				Dim commonBooleanAttrs As List = Array As String("disabled", "readonly", "checked", "required", "selected", "multiple", "autofocus", "novalidate", "formnovalidate", "hidden")
+				
+				If commonBooleanAttrs.IndexOf(attrName) > -1 Then
+					Parent.Attributes.Add(CreateHtmlAttribute(attrName, attrName))
+				Else
+					' Log unexpected boolean attributes for debugging
+					If mShowParserLogs Then
+						LogColor($"Warning: Unexpected boolean attribute: ${attrName}"$, COLOR_RED)
+					End If
 				End If
 			End If
 		End If
