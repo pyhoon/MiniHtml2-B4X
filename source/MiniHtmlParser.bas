@@ -5,7 +5,7 @@ Type=Class
 Version=8.3
 @EndOfDesignText@
 'MiniHtmlParser
-'Version: 1.00
+'Version: 1.01
 'Credits to: Erel
 Sub Class_Globals
 	Public NoNode As HtmlNode
