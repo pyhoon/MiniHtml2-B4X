@@ -260,7 +260,7 @@ Public Sub setParent (ParentTag As MiniHtml)
 	mParent = ParentTag
 End Sub
 
-' (deprecated) use ChildByIndex
+' (deprecated) Use ChildByIndex
 Public Sub Child (tagIndex As Int) As MiniHtml
 	Return ChildByIndex(tagIndex)
 End Sub
@@ -702,7 +702,8 @@ Public Sub Append (Value As String)
 	mBuilder.Append(Value)
 End Sub
 
-Public Sub Write (Value As String) ' deprecate
+' (deprecated) Use Append
+Public Sub Write (Value As String)
 	mBuilder.Append(Value)
 End Sub
 
