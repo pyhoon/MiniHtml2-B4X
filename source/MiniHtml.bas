@@ -2,13 +2,14 @@
 Group=Classes
 ModulesStructureVersion=1
 Type=Class
-Version=10.3
+Version=10.5
 @EndOfDesignText@
 'MiniHtml
-'Version: 2.20
+'Version: 2.30
 Sub Class_Globals
 	Private mIndents As Int
 	Private mIndentString As String
+	Private mId As String
 	Private mMode As String
 	Private mName As String
 	Private mFlat As Boolean
@@ -26,7 +27,8 @@ Sub Class_Globals
 	Private Const mMeta As String = "meta" ' <meta>
 	Private Const mSelf As String = "self" ' <tag />
 	Private Const mUniline As String = "uniline" ' <tag></tag>
-	Private Const mMultiline As String = "multiline" ' <tag> CRLF </tag>	
+	Private Const mMultiline As String = "multiline" ' <tag> CRLF </tag>
+	Public SpecialTags As List = Array As String("html", "head", "body", "") 'these tags are not indented by default
 End Sub
 
 ' Initial with tag name
@@ -42,6 +44,10 @@ Public Sub Initialize (Name As String)
 	mIndentation = False
 	mName = Name
 	Select mName.ToLowerCase
+		Case "doctype"
+			Append("<!DOCTYPE html>")
+			mMode = mMeta
+			Return
 		Case "head", "form", "table"
 			mMode = mMultiline
 		Case "meta", "input", "link"
@@ -80,7 +86,6 @@ Public Sub buildImpl (indent As Int, AlignAttribute2 As Boolean) As String
 	SB.Initialize
 	Dim sIndent As String
 	Dim sSpacing As String
-	Dim SpecialTags As List = Array As String("html", "head", "body", "")
 
 	If mLineFeed Then
 		SB.Append(CRLF)
@@ -255,28 +260,77 @@ Public Sub setParent (ParentTag As MiniHtml)
 	mParent = ParentTag
 End Sub
 
-' Get child by index
+' (deprecated) use ChildByIndex
 Public Sub Child (tagIndex As Int) As MiniHtml
-	Return mChildren.Get(tagIndex)
+	Return ChildByIndex(tagIndex)
 End Sub
 
-' Get child matches id attribute
-Public Sub ChildById (value As String) As MiniHtml
-	For i = 0 To mChildren.Size - 1
-		If Child(i).mAttributes.Get("id") = value Then
-			Return Child(i)
-		End If
-	Next
+' Get child matches tag name using deep search
+'Public Sub Child (value As String) As MiniHtml
+'	Return ChildByName(value)
+'End Sub
+
+' Get child by index
+Public Sub ChildByIndex (tagIndex As Int) As MiniHtml
+	If mChildren.Get(tagIndex) Is MiniHtml Then
+		Return mChildren.Get(tagIndex)
+	End If
 	Return Null
 End Sub
 
-' Get first child matches Tag Name
-Public Sub ChildByName (value As String) As MiniHtml
-	For i = 0 To mChildren.Size - 1
-		If Child(i).Name = value Then
-			Return Child(i)
+' Get child matches id attribute using deep search
+Public Sub ChildById (value As String) As MiniHtml
+	For Each ChildObject In mChildren
+		If ChildObject Is String Then Continue
+		If ChildObject Is MiniHtml Then
+			Dim TheChild As MiniHtml = ChildObject
+			If TheChild.mAttributes.ContainsKey("id") Then
+				'Log($"searching ${value} in ${TheChild.Name} ${TheChild.mAttributes.Get("class")} tag"$)
+				If TheChild.Id = value Then Return ChildObject
+			End If
 		End If
 	Next
+	Return DeepSearchById(value)
+End Sub
+
+Private Sub DeepSearchById (value As String) As MiniHtml
+	If Initialized(mChildren) Then
+		For Each ChildObject As Object In mChildren
+			If ChildObject Is String Then Continue
+			If ChildObject Is MiniHtml Then
+				Dim TheChild As MiniHtml = ChildObject
+				Dim result As MiniHtml = TheChild.ChildById(value)
+				If Initialized(result) Then Return result
+			End If
+		Next
+	End If
+	Return Null
+End Sub
+
+' Get child matches tag name using deep search
+Public Sub ChildByName (value As String) As MiniHtml
+	For Each ChildObject In mChildren
+		If ChildObject Is String Then Continue
+		If ChildObject Is MiniHtml Then
+			Dim TheChild As MiniHtml = ChildObject
+			'Log($"searching ${value} in ${TheChild.Name} ${TheChild.mAttributes.Get("class")} tag"$)
+			If TheChild.Name = value Then Return ChildObject
+		End If
+	Next
+	Return DeepSearchByName(value)
+End Sub
+
+Private Sub DeepSearchByName (value As String) As MiniHtml
+	If Initialized(mChildren) Then
+		For Each ChildObject In mChildren
+			If ChildObject Is String Then Continue
+			If ChildObject Is MiniHtml Then
+				Dim TheChild As MiniHtml = ChildObject
+				Dim result As MiniHtml = TheChild.ChildByName(value)
+				If Initialized(result) Then Return result
+			End If
+		Next
+	End If
 	Return Null
 End Sub
 
@@ -565,6 +619,16 @@ Public Sub getLineFeed As Boolean
 	Return mLineFeed
 End Sub
 
+'Set or return id attribute
+Public Sub getId As String
+	mId = mAttributes.Get("id")
+	Return mId
+End Sub
+Public Sub setId (Value As String)
+	mId = Value
+	mAttributes.Put("id", mId)
+End Sub
+
 'Replace/return maps of attributes
 Public Sub getAttributes As Map
 	Return mAttributes
@@ -629,9 +693,16 @@ End Sub
 Public Sub setIndentString (Value As String)
 	mIndentString = Value
 End Sub
+Public Sub getIndentString As String
+	Return mIndentString
+End Sub
 
 ' Add text value to Builder
-Public Sub Write (Value As String)
+Public Sub Append (Value As String)
+	mBuilder.Append(Value)
+End Sub
+
+Public Sub Write (Value As String) ' deprecate
 	mBuilder.Append(Value)
 End Sub
 
