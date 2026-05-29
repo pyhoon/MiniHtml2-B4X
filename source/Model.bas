@@ -1,5 +1,12 @@
+﻿B4J=true
+Group=Classes
+ModulesStructureVersion=1
+Type=Class
+Version=10.5
+@EndOfDesignText@
 ' MiniHtml Model class
-	Private DB As MiniORM$end$
+Sub Class_Globals
+	Private DB As MiniORM
 End Sub
 
 Public Sub Initialize
@@ -117,3 +124,4 @@ Public Sub Delete (Id As Int)
 	DB.Table = "tbl_$endpoints$"
 	DB.Id = Id
 	DB.Delete
+End Sub

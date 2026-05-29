@@ -4,7 +4,8 @@ ModulesStructureVersion=1
 Type=Class
 Version=10.2
 @EndOfDesignText@
-'Handler class
+'Index
+'Version: 2.40
 Sub Class_Globals
 	Private Response As ServletResponse
 	Private Method As String

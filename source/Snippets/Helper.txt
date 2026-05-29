@@ -1,4 +1,4 @@
-' MiniHTML Helper (Add to MH.bas)
+' MiniHTML Helper module (Add to MH.bas)
 Public Sub CreateTag (Name As String) As MiniHtml
 	Dim tag1 As MiniHtml
 	tag1.Initialize(Name)

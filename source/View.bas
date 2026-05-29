@@ -1,5 +1,12 @@
+﻿B4J=true
+Group=Handlers
+ModulesStructureVersion=1
+Type=Class
+Version=10.5
+@EndOfDesignText@
 ' MiniHtml View class
-	Private App As EndsMeet$end$
+Sub Class_Globals
+	Private App As EndsMeet
 End Sub
 
 Public Sub Initialize
@@ -528,3 +535,4 @@ Private Sub HelpLink As MiniHtml
 	i1.cls("bi bi-gear me-2")
 	i1.attr("title", "API")
 	Return li1
+End Sub
