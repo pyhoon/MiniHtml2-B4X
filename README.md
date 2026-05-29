@@ -34,7 +34,7 @@ MiniHtml2-B4X/
 │   ├── MH.bas              # Static helper — factory methods for common tags
 │   ├── Index.bas           # Demo handler (B4J servlet)
 │   ├── MiniHtml2.b4j       # B4J project file
-│   ├── manifest.txt        # Library manifest (depends on B4XCollections)
+│   ├── manifest.txt        # Library manifest
 │   ├── libs.json           # External library dependencies (EndsMeet)
 │   ├── Files/config.example
 │   └── Snippets/           # Code templates: Handler, View, Model, Helper
