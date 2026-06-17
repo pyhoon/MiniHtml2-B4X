@@ -85,7 +85,7 @@ End Sub
 Public Sub Create (Category As Int, Code As String, Name As String, Price As Double, Created_Date As String)
 	DB.Open
 	DB.Table = "tbl_$endpoints$"
-	DB.Columns = Array("category_id", "$endpoint$_code", "$endpoint$_name", "created_date")
+	DB.Columns = Array("category_id", "$endpoint$_code", "$endpoint$_name", "$endpoint$_price", "created_date")
 	DB.Parameters = Array(Category, Code, Name, Price, Created_Date)
 	DB.ReturnRow = True
 	DB.Save
@@ -94,7 +94,7 @@ End Sub
 Public Sub Read As List
 	DB.Open
 	DB.Table = "tbl_$endpoints$ p"
-	DB.Columns = Array("p.id", "p.category_id", "c.category_name", "p.$endpoint$_code", "p.$endpoint$_name")
+	DB.Columns = Array("p.id", "p.category_id", "c.category_name", "p.$endpoint$_code", "p.$endpoint$_name", "$endpoint$_price", "created_date")
 	DB.Join("", "tbl_categories c", Array("p.category_id = c.id"))
 	DB.OrderBy = CreateMap("p.id": "DESC")
 	DB.Query
@@ -104,7 +104,7 @@ End Sub
 Public Sub Update (Id As Int, Category As Int, Code As String, Name As String, Price As Double, Modified_Date As String)
 	DB.Open
 	DB.Table = "tbl_$endpoints$"
-	DB.Columns = Array("category_id", "$endpoint$_code", "$endpoint$_name", "modified_date")
+	DB.Columns = Array("category_id", "$endpoint$_code", "$endpoint$_name", "$endpoint$_price", "modified_date")
 	DB.Parameters = Array(Category, Code, Name, Price, Modified_Date)
 	DB.Condition = "id = ?"
 	DB.Parameter = Id
