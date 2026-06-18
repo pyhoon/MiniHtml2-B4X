@@ -6,8 +6,8 @@ Group=App
 Library1=b4xcollections
 Library2=endsmeet
 Library3=jcore
-Module1=Index
-Module2=MH
+Module1=Helper
+Module2=Index
 Module3=MiniHtml
 Module4=MiniHtmlParser
 NumberOfFiles=1
@@ -17,7 +17,7 @@ Version=10.5
 @EndOfDesignText@
 #Region  Project Attributes
 'Product: MiniHtml
-'Version: 2.40
+'Version: 2.41
 'License: MIT License
 'Developer: Poon Yip Hoon (Aeric)
 #CommandLineArgs:
@@ -26,7 +26,7 @@ Version=10.5
 #Region  Macros
 '#Macro: Title, Export as zip, ide://run?File=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
 #Macro: Title, Export State, ide://run?File=%B4X%\CodeBundle.jar&Args=%STATE1%&autosave=True
-#Macro: Title, Update Manifest, ide://run?File=%ADDITIONAL%\..\B4X\manifest-writer.jar&Args=%PROJECT%&Args=%PROJECT%&Args=Author&Args=Aeric&Args=Version&Args=2.40&Args=DependsOn&Args=B4XCollections
+#Macro: Title, Update Manifest, ide://run?File=%ADDITIONAL%\..\B4X\manifest-writer.jar&Args=%PROJECT%&Args=%PROJECT%&Args=Author&Args=Aeric&Args=Version&Args=2.41&Args=DependsOn&Args=B4XCollections
 #Macro: Title, Create B4X Lib, ide://run?File=%JAVABIN%\jar.exe&WorkingDirectory=..&Args=-cMf&Args=..\release\MiniHtml.b4xlib&Args=Snippets&Args=MiniHtml.bas&Args=MiniHtmlParser.bas&Args=manifest.txt&Args=LICENSE
 #Macro: Title, Release folder, ide://run?File=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\..\release
 #Macro: Title, Copy to AddLibs, ide://run?File=%COMSPEC%&Args=/c&Args=copy&Args=%PROJECT%\..\release\MiniHtml.b4xlib&Args=%ADDITIONAL%\..\B4X
